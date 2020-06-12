@@ -16,9 +16,9 @@ class Shop:
         "Шлем": {"Ведро": 1},
         "Ботинки": {"Шлёпки": 1},
         "Нагрудник": {"Ватник": 3},
-        "Поножи": {"Джинсы": 2},
+        "Поножи": {"Джинсы": 2, "Шорты в горошек": 9},
         "Шляпа": {"Кепка": 1},
-        "Перчатки": {"Кожаные перчатки": 1},
+        "Перчатки": {"Кожаные перчатки": 1, "Не стриранные носки": 228},
         "Еда": {"Булка": 5}
     }
 
@@ -34,7 +34,7 @@ class Shop:
                     result = get_key(self.items, global_item)
                     print()
                     print(">--", result, "--<")
-                    print(*global_item.keys(), end=" --> ")
+                    print(item_from_shop, end=" --> ")
                     if result == "Меч":
                         print("Урон: ", end="")
                     elif result == "Шлем" or "Ботинки" or "Перчатки" or "Нагрудник" or "Поножи" or "Шляпа":
@@ -124,7 +124,19 @@ class Warrior:
     Def = 1
     hp = 10
     max_hp = 10
-    loot = []
+    is_equipped = {"Шлем": False,
+                   "Нагрудник": False,
+                   "Перчатки": False,
+                   "Поножи": False,
+                   "Ботинки": False,
+                   "Меч": False}
+    equipped = {"Шлем": "Пусто",
+                "Нагрудник": "Пусто",
+                "Перчатки": "Пусто",
+                "Поножи": "Пусто",
+                "Ботинки": "Пусто",
+                "Меч": "Пусто"}
+    inventory = []
     InBattle = False
     location = "Черняхов"
 
@@ -135,6 +147,10 @@ class Warrior:
             print(f"Сила - {self.pwr}.\nЗащита - {self.Def}.\nЗдоровье - {self.hp} из {self.max_hp}.")
         elif param.lower() == "баланс":
             print(f"Сейчас у вас {self.money} монет.")
+        elif param.lower() == "инвентарь":
+            for equip in self.equipped:
+                print(equip, end=" - ")
+                print(self.equipped.get(equip))
 
     def go_travel(self, location):
         if Warrior.InBattle:
@@ -192,6 +208,22 @@ class Warrior:
             print(f"Сейчас у вас {self.lvl} уровень!")
             print(f"До следующего уровня вам нужно набрать {Xp.Xp[self.lvl]} очков опыта!")
 
+    def equip(self, item):
+        for global_item in Shop.items.values():
+            if item in global_item.keys():
+                result = get_key(Shop.items, global_item)
+        if not self.is_equipped.get(result):
+            self.equipped.fromkeys({result: item})
+            self.is_equipped.fromkeys({result: True})
+            print("Предмет экипирован.")
+        if self.is_equipped.get(result):
+            print("У вас экипирован другой предмет. Заменить?")
+            answer = input()
+            if answer.lower() == "да":
+                self.equipped.fromkeys({result: item})
+                self.is_equipped.fromkeys({result: True})
+                print("Предмет экипирован.")
+
 
 class Difficult:
 
@@ -218,11 +250,13 @@ class Help:
         print("\n--> В поля <--\nОтправляет вас в поля\n\n--> Статы <--\nПоказывает характеристики")
 
 
+
 Name = input("Добро пожаловать в игру 'Мечи и Сандали!'\nВведите имя вашего героя!\n")
 Player = Warrior()
 Player.name = Name
 print(f"Добро пожаловать, {Player.name}!")
 print("Вы находитесь в деревне Черняхов. Это ваша стартовая локация.")
+Player.equip("Деревянная палка")
 print("Чтобы узнать больше команд - напишите help")
 while True:
     Do = input("--> ")
@@ -233,11 +267,13 @@ while True:
         print("--- Уровень ---\n--- Характеристики ---\n--- Баланс ---")
         stat = input()
         if stat.lower() == "уровень":
-            Player.stats("уровень")
+            Player.stats(stat.lower())
         elif stat.lower() == "характеристики":
-            Player.stats("характеристики")
+            Player.stats(stat.lower())
         elif stat.lower() == "баланс":
-            Player.stats("баланс")
+            Player.stats(stat.lower())
+        elif stat.lower() == "инвентарь":
+            Player.stats(stat.lower())
     elif Do.lower() == "help":
         Help()
 
