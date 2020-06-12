@@ -3,6 +3,47 @@ import random
 from story import *
 
 
+def get_key(dictionary, value):
+    for key, val in dictionary.items():
+        if val == value:
+            return key
+
+
+class Shop:
+    items_in_shop = []
+    items = {
+        "Меч": {"Деревянная палка": 2},
+        "Шлем": {"Ведро": 1},
+        "Ботинки": {"Шлёпки": 1},
+        "Нагрудник": {"Ватник": 3},
+        "Поножи": {"Джинсы": 2},
+        "Шляпа": {"Кепка": 1},
+        "Перчатки": {"Кожаные перчатки": 1},
+        "Еда": {"Булка": 5}
+    }
+
+    def iterate_items(self):
+        for item in self.items_in_shop:
+            print(item, end=" ")
+
+    def shop_goods(self):
+        print("---- Товары ----")
+        for item_from_shop in self.items_in_shop:
+            for global_item in self.items.values():
+                if item_from_shop in global_item.keys():
+                    result = get_key(self.items, global_item)
+                    print()
+                    print(">--", result, "--<")
+                    print(*global_item.keys(), end=" --> ")
+                    if result == "Меч":
+                        print("Урон: ", end="")
+                    elif result == "Шлем" or "Ботинки" or "Перчатки" or "Нагрудник" or "Поножи" or "Шляпа":
+                        print("Защита: ", end="")
+                    elif result == "Еда":
+                        print("Здоровье: ", end="")
+                    print(global_item.get(item_from_shop))
+
+
 class Mobs:
     hp = 0
     damage = 0
@@ -42,6 +83,7 @@ class Fields:
 
     @staticmethod
     def enter_location():
+        Player.location = "Fields"
         print("Вы вышли в поля.")
         time.sleep(2)
         mob = Fields.mobs[random.randint(0, len(Fields.mobs) - 1)]
@@ -51,11 +93,21 @@ class Fields:
             fighting = Slime()
             Slime.meeting()
         print("Атака/Побег")
-        do = input()
-        if do == "Атака":
-            Warrior.battle(mob, fighting)
-        elif do == "Побег":
-            Warrior.away()
+        while True:
+            do = input()
+            if do == "Атака":
+                Warrior.battle(mob, fighting)
+            elif do == "Побег":
+                Warrior.away()
+            else:
+                print("Не, оно так не работает.")
+                continue
+            break
+
+
+class BaseLocation:
+    name = "Черняхов"
+    places = ["Магазин", "Таверна"]
 
 
 class Xp:
@@ -74,6 +126,7 @@ class Warrior:
     max_hp = 10
     loot = []
     InBattle = False
+    location = "Черняхов"
 
     def stats(self, param):
         if param.lower() == "уровень":
@@ -134,6 +187,7 @@ class Warrior:
         if self.xp >= xp_for_next_lvl:
             self.xp -= xp_for_next_lvl
             self.lvl += 1
+            self.hp = self.max_hp
             print("У нас новый уровень!")
             print(f"Сейчас у вас {self.lvl} уровень!")
             print(f"До следующего уровня вам нужно набрать {Xp.Xp[self.lvl]} очков опыта!")
@@ -168,6 +222,8 @@ Name = input("Добро пожаловать в игру 'Мечи и Санд�
 Player = Warrior()
 Player.name = Name
 print(f"Добро пожаловать, {Player.name}!")
+print("Вы находитесь в деревне Черняхов. Это ваша стартовая локация.")
+print("Чтобы узнать больше команд - напишите help")
 while True:
     Do = input("--> ")
     if Do.lower() == "в поля":
