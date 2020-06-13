@@ -1,11 +1,55 @@
 import random
 from story import *
+import os
+
+global current_dir
+current_dir = os.getcwd()
+print(current_dir)
 
 
 def get_key(dictionary, value):
     for key, val in dictionary.items():
         if val == value:
             return key
+
+
+def save_game():
+    if "save" not in os.listdir():
+        print("Создаётся первое сохранение...")
+        if "main.py" in os.listdir():
+            os.makedirs(fr"saves\{Player.name}")
+        else:
+            os.chdir(current_dir)
+            os.makedirs(fr"saves\{Player.name}")
+        os.chdir(fr"saves\{Player.name}")
+        with open("save.txt", "w") as save:
+            save.write(f"{Player.name}\n{Player.money}\n{Player.Def}\n{Player.inventory}\n{Player.equipped}"
+                       f"\n{Player.is_equipped}\n{Player.max_hp}\n{Player.location}\n{Player.lvl}\n{Player.xp}")
+    elif "save" in os.listdir():
+        print("Сохраняем...")
+        try:
+            os.chdir(fr"saves\{Player.name}")
+        except FileNotFoundError:
+            os.chdir(r"saves")
+            os.makedirs(f"{Player.name}")
+            os.chdir(f"{Player.name}")
+        with open("save.txt", "w") as save:
+            save.write(f"{Player.name}\n{Player.money}\n{Player.Def}\n{Player.inventory}\n{Player.equipped}"
+                       f"\n{Player.is_equipped}\n{Player.max_hp}\n{Player.location}\n{Player.lvl}\n{Player.xp}")
+
+
+def load_save():
+    if "main.py" in os.listdir():
+        try:
+            os.chdir(rf"saves")
+        except FileNotFoundError:
+            return None
+    print(os.listdir())
+    result = input("Какого персонажа выбрать?\n")
+    os.chdir(result)
+    with open("save.txt", "r") as save:
+        save_proporties = save.read().splitlines()
+        Player.name, Player.money, Player.Def, Player.inventory, Player.equipped, Player.is_equipped, Player.max_hp, Player.location, Player.lvl, Player.xp = save_proporties
 
 
 class Shop:
@@ -79,6 +123,7 @@ class Mobs:
         drop = self.loot[random.randint(0, len(self.loot))]
         Player.inventory += drop
         print(f"Вы получили {self.xp} xp, {self.money} монет.\nА так же вам выпало: {drop}.")
+        Player.InBattle = False
         Player.lvl_up()
 
 
@@ -141,8 +186,8 @@ class Warrior:
     pwr = 1
     Dmg = random.randint(1+pwr, 4+pwr)
     Def = 1
-    hp = 10
-    max_hp = 10
+    hp = 15
+    max_hp = 15
     is_equipped = {"Шлем": False,
                    "Нагрудник": False,
                    "Перчатки": False,
@@ -170,17 +215,10 @@ class Warrior:
             print(equip, end=" --> ")
             print(self.equipped.get(equip))
 
-    def stats(self, param):
-        if param.lower() == "уровень":
-            print(f"Сейчас у вас {self.lvl} уровень и {self.xp} очков опыта.")
-        elif param.lower() == "характеристики":
-            print(f"Сила - {self.pwr}.\nЗащита - {self.Def}.\nЗдоровье - {self.hp} из {self.max_hp}.")
-        elif param.lower() == "баланс":
-            print(f"Сейчас у вас {self.money} монет.")
-        elif param.lower() == "инвентарь":
-            for equip in self.equipped:
-                print(equip, end=" - ")
-                print(self.equipped.get(equip))
+    def stats(self):
+        print(f"Сейчас у вас {self.lvl} уровень и {self.xp} очков опыта.")
+        print(f"Сила - {self.pwr}.\nЗащита - {self.Def}.\nЗдоровье - {self.hp} из {self.max_hp}.")
+        print(f"Сейчас у вас {self.money} монет.")
 
     def go_travel(self, location):
         if Warrior.InBattle:
@@ -301,10 +339,11 @@ Chernyahov_Shop = Shop()
 Chernyahov_Shop.items_in_shop.append("Деревянная палка")
 Chernyahov_Shop.items_in_shop.append("Ведро")
 Chernyahov_Shop.items_cost.get("Деревянная палка")
-
-Name = input("Добро пожаловать в игру 'Мечи и Сандали!'\nВведите имя вашего героя!\n")
 Player = Warrior()
-Player.name = Name
+load_save()
+if Player.name == "":
+    Name = input("Добро пожаловать в игру 'Мечи и Сандали!'\nВведите имя вашего героя!\n")
+    Player.name = Name
 print(f"Добро пожаловать, {Player.name}!")
 print("Вы находитесь в деревне Черняхов. Это ваша стартовая локация.")
 print("Чтобы узнать больше команд - напишите help")
@@ -313,15 +352,7 @@ while True:
     if Do.lower() == "в поля":
         Player.go_travel(Fields)
     elif Do.lower() == "статы":
-        print("Укажите какие статы вы хотите увидеть")
-        print("--- Уровень ---\n--- Характеристики ---\n--- Баланс ---")
-        stat = input()
-        if stat.lower() == "уровень":
-            Player.stats(stat.lower())
-        elif stat.lower() == "характеристики":
-            Player.stats(stat.lower())
-        elif stat.lower() == "баланс":
-            Player.stats(stat.lower())
+            Player.stats()
     elif Do.lower() == "help":
         Help()
     elif Do.lower() == "инвентарь":
@@ -337,5 +368,8 @@ while True:
         print("Вы хотите что-то купить?")
         item = input()
         Chernyahov_Shop.buy(item)
+    elif Do.lower() == "выход":
+        save_game()
+        exit(0)
 
 
