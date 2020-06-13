@@ -1,4 +1,3 @@
-import time
 import random
 from story import *
 
@@ -58,7 +57,7 @@ class Mobs:
         Player.money += self.money
         Player.xp += self.xp
         drop = self.loot[random.randint(0, len(self.loot))]
-        Player.loot += drop
+        Player.inventory += drop
         print(f"Вы получили {self.xp} xp, {self.money} монет.\nА так же вам выпало: {drop}.")
         Player.lvl_up()
 
@@ -204,6 +203,8 @@ class Warrior:
             self.xp -= xp_for_next_lvl
             self.lvl += 1
             self.hp = self.max_hp
+            self.pwr += 1
+            self.Def += 1
             print("У нас новый уровень!")
             print(f"Сейчас у вас {self.lvl} уровень!")
             print(f"До следующего уровня вам нужно набрать {Xp.Xp[self.lvl]} очков опыта!")
@@ -213,16 +214,26 @@ class Warrior:
             if item in global_item.keys():
                 result = get_key(Shop.items, global_item)
         if not self.is_equipped.get(result):
-            self.equipped.fromkeys({result: item})
-            self.is_equipped.fromkeys({result: True})
+            self.equipped.update({result: item})
+            self.is_equipped.update({result: True})
+            for global_item in Shop.items.values():
+                if item in global_item.keys():
+                    bonus = global_item.get(item)
+            self.Dmg = random.randint(1 + self.pwr, 4 + self.pwr) + bonus
             print("Предмет экипирован.")
-        if self.is_equipped.get(result):
-            print("У вас экипирован другой предмет. Заменить?")
-            answer = input()
-            if answer.lower() == "да":
-                self.equipped.fromkeys({result: item})
-                self.is_equipped.fromkeys({result: True})
-                print("Предмет экипирован.")
+        elif self.is_equipped.get(result):
+            if self.equipped.get(result) == item:
+                print("Этот предмет уже экипирован.")
+            else:
+                print("У вас экипирован другой предмет. Заменить?")
+                answer = input()
+                if answer.lower() == "да":
+                    self.equipped.fromkeys({result: item})
+                    self.is_equipped.fromkeys({result: True})
+                    for global_item in Shop.items.values():
+                        bonus = global_item.get(item)
+                    self.Dmg = random.randint(1 + self.pwr, 4 + self.pwr) + bonus
+                    print("Предмет экипирован.")
 
 
 class Difficult:
