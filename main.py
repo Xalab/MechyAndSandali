@@ -15,11 +15,21 @@ class Shop:
         "Шлем": {"Ведро": 1},
         "Ботинки": {"Шлёпки": 1},
         "Нагрудник": {"Ватник": 3},
-        "Поножи": {"Джинсы": 2, "Шорты в горошек": 9},
+        "Поножи": {"Джинсы": 7, "Шорты в горошек": 3},
         "Шляпа": {"Кепка": 1},
-        "Перчатки": {"Кожаные перчатки": 1, "Не стриранные носки": 228},
+        "Перчатки": {"Кожаные перчатки": 4},
         "Еда": {"Булка": 5}
     }
+    items_cost = {"Деревянная палка": 10,
+                  "Ведро": 15,
+                  "Шлёпки": 5,
+                  "Ватник": 25,
+                  "Джинсы": 30,
+                  "Шорты в горошек": 15,
+                  "Кепка": 5,
+                  "Кожаные перчатки": 20,
+                  "Булка": 2
+                  }
 
     def iterate_items(self):
         for item in self.items_in_shop:
@@ -41,6 +51,16 @@ class Shop:
                     elif result == "Еда":
                         print("Здоровье: ", end="")
                     print(global_item.get(item_from_shop))
+                    print(f"Цена - {self.items_cost.get(item_from_shop)}")
+
+    def buy(self, item):
+        cost = self.items_cost.get(item)
+        if Player.money >= cost:
+            Player.money -= cost
+            Player.inventory.append(item)
+            print(f"Вы купили {item}")
+        else:
+            print("У вас не хватает денег.")
 
 
 class Mobs:
@@ -117,7 +137,7 @@ class Warrior:
     name = ""
     lvl = 1
     xp = 0
-    money = 0
+    money = 1
     pwr = 1
     Dmg = random.randint(1+pwr, 4+pwr)
     Def = 1
@@ -138,6 +158,17 @@ class Warrior:
     inventory = []
     InBattle = False
     location = "Черняхов"
+
+    def get_inventory(self):
+        if len(self.inventory) > 0:
+            print(self.inventory)
+        else:
+            print("У вас ничего нет в инвентаре.")
+
+    def get_equipment(self):
+        for equip in self.equipped:
+            print(equip, end=" --> ")
+            print(self.equipped.get(equip))
 
     def stats(self, param):
         if param.lower() == "уровень":
@@ -210,30 +241,33 @@ class Warrior:
             print(f"До следующего уровня вам нужно набрать {Xp.Xp[self.lvl]} очков опыта!")
 
     def equip(self, item):
-        for global_item in Shop.items.values():
-            if item in global_item.keys():
-                result = get_key(Shop.items, global_item)
-        if not self.is_equipped.get(result):
-            self.equipped.update({result: item})
-            self.is_equipped.update({result: True})
+        if item in self.inventory:
             for global_item in Shop.items.values():
                 if item in global_item.keys():
-                    bonus = global_item.get(item)
-            self.Dmg = random.randint(1 + self.pwr, 4 + self.pwr) + bonus
-            print("Предмет экипирован.")
-        elif self.is_equipped.get(result):
-            if self.equipped.get(result) == item:
-                print("Этот предмет уже экипирован.")
-            else:
-                print("У вас экипирован другой предмет. Заменить?")
-                answer = input()
-                if answer.lower() == "да":
-                    self.equipped.fromkeys({result: item})
-                    self.is_equipped.fromkeys({result: True})
-                    for global_item in Shop.items.values():
+                    result = get_key(Shop.items, global_item)
+            if not self.is_equipped.get(result):
+                self.equipped.update({result: item})
+                self.is_equipped.update({result: True})
+                for global_item in Shop.items.values():
+                    if item in global_item.keys():
                         bonus = global_item.get(item)
-                    self.Dmg = random.randint(1 + self.pwr, 4 + self.pwr) + bonus
-                    print("Предмет экипирован.")
+                self.Dmg = random.randint(1 + self.pwr, 4 + self.pwr) + bonus
+                print("Предмет экипирован.")
+            elif self.is_equipped.get(result):
+                if self.equipped.get(result) == item:
+                    print("Этот предмет уже экипирован.")
+                else:
+                    print("У вас экипирован другой предмет. Заменить?")
+                    answer = input()
+                    if answer.lower() == "да":
+                        self.equipped.fromkeys({result: item})
+                        self.is_equipped.fromkeys({result: True})
+                        for global_item in Shop.items.values():
+                            bonus = global_item.get(item)
+                        self.Dmg = random.randint(1 + self.pwr, 4 + self.pwr) + bonus
+                        print("Предмет экипирован.")
+        else:
+            print("У вас нет такого предмета.")
 
 
 class Difficult:
@@ -258,16 +292,21 @@ class Help:
             self.commands()
 
     def commands(self):
-        print("\n--> В поля <--\nОтправляет вас в поля\n\n--> Статы <--\nПоказывает характеристики")
+        print("\n--> В поля <--\nОтправляет вас в поля\n\n--> Статы <--\nПоказывает характеристики"
+              "\n\n-->Экипировать<--\nПозволяет экипировать предмет из инвентаря\n\n-->Инвентарь<--"
+              "\nОтображает ваш инвентарь\n\n-->Экипировка<--\nОтображает вашу экипировку")
 
 
+Chernyahov_Shop = Shop()
+Chernyahov_Shop.items_in_shop.append("Деревянная палка")
+Chernyahov_Shop.items_in_shop.append("Ведро")
+Chernyahov_Shop.items_cost.get("Деревянная палка")
 
 Name = input("Добро пожаловать в игру 'Мечи и Сандали!'\nВведите имя вашего героя!\n")
 Player = Warrior()
 Player.name = Name
 print(f"Добро пожаловать, {Player.name}!")
 print("Вы находитесь в деревне Черняхов. Это ваша стартовая локация.")
-Player.equip("Деревянная палка")
 print("Чтобы узнать больше команд - напишите help")
 while True:
     Do = input("--> ")
@@ -283,8 +322,20 @@ while True:
             Player.stats(stat.lower())
         elif stat.lower() == "баланс":
             Player.stats(stat.lower())
-        elif stat.lower() == "инвентарь":
-            Player.stats(stat.lower())
     elif Do.lower() == "help":
         Help()
+    elif Do.lower() == "инвентарь":
+        Player.get_inventory()
+    elif Do.lower() == "экипировка":
+        Player.get_equipment()
+    elif "экипировать" in Do.lower():
+        print("Что вы хотите экипировать?")
+        Equip = input()
+        Player.equip(Equip)
+    elif Do.lower() == "в магазин":
+        Chernyahov_Shop.shop_goods()
+        print("Вы хотите что-то купить?")
+        item = input()
+        Chernyahov_Shop.buy(item)
+
 
